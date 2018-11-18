@@ -1,6 +1,7 @@
-import React, { Component } from "react";
-import SiteBar from "./home/Navbar";
+import React, { Component } from 'react';
 import Auth from './auth/Auth';
+import NavBar from './home/Navbar';
+import Splash from './home/Splash';
 import {
   BrowserRouter as Router,
   Route,
@@ -8,36 +9,59 @@ import {
 } from 'react-router-dom';
 
 class App extends Component {
-
   constructor() {
     super();
     this.state = {
-      sessionToken: ''  
+      sessionToken: '',
     }
   }
 
-componentWillMount() {
-    const token = localStorage.getItem('token'); //4
-    if (token && !this.state.sessionToken) {   //5 
+  componentWillMount() {
+    const token = localStorage.getItem('token')
+    if (token && !this.state.sessionToken) {
       this.setState({ sessionToken: token });
     }
-}
+  }
 
-setSessionState = (token) => {
-    localStorage.setItem('token', token); //3
+  setSessionState = (token) => {
+    localStorage.setItem('token', token);
     this.setState({ sessionToken: token });
-}
+  }
 
-render() {
+  logout = () => {
+    this.setState({ sessionToken: ''});
+    localStorage.clear();
+  }
+
+
+  protectedViews = () => {
+    if (this.state.sessionToken === localStorage.getItem('token')) {
+      return (
+        <Switch>
+          <Route path='/' exact>
+            <Splash sessionToken={this.state.sessionToken} />
+          </Route>
+        </Switch>
+      )
+    } else {
+      return (
+        <Route path="/auth" >
+          <Auth setToken={this.setSessionState}/>
+        </Route>
+      )
+    }
+
+  }
+
+  render() {
     return (
       <Router>
-      <div>
-          <SiteBar />
-          <Auth setToken={this.setSessionState} />
-          <Route />
-          <Switch />
-      </div>
-     </Router>
+        <div>
+          <NavBar clickLogout={this.logout} />
+          {this.protectedViews()}
+        </div>
+      </Router>
+
     );
   }
 }
